@@ -48,7 +48,7 @@
 </head>
 <body>
 
-  <h1>Gerador de Thumbnails (Padrão 1400x1050)</h1>
+  <h1>Gerador de Cards (Padrão 1400x1050)</h1>
 
   <div class="controls">
     <label for="userImage">1. Faça o upload da foto do curso (JPG/PNG):</label><br>
@@ -69,7 +69,7 @@
     let fotoDoCursoLoaded = false;
     let artePadraoLoaded = false;
 
-    // IMPORTANTE: O arquivo com esse exato nome deve estar na mesma pasta do HTML
+    // Não alterar nome do arquivo
     artePadrao.src = 'arte_padrao_branca.png'; 
     
     artePadrao.onload = () => {
