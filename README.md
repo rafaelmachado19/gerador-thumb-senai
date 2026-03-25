@@ -9,7 +9,7 @@ Para usar, basta acessar o link, fazer o upload da foto do curso e clicar em bai
 ## Como atualizar a arte
 Caso seja necessário alterar a identidade visual da malha padrão futuramente, siga os passos:
 
-1. Exporte a nova arte com exatos 1400x1050 pixels, com fundo transparente.
+1. Exporte a nova arte com pixels, com fundo transparente.
 2. O nome do arquivo salvo deve ser obrigatoriamente `arte_padrao_branca.png`.
 3. Substitua o arquivo atual pelo novo.
 
