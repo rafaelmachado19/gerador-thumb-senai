@@ -4,56 +4,36 @@
   <meta charset="UTF-8" />
   <title>Gerador de Thumbnails - Futuro.Digital</title>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 20px;
-    }
-    .controls {
-      background: #fff;
-      padding: 20px;
-      margin: 0 auto 20px auto;
-      border-radius: 8px;
-      max-width: 600px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    canvas {
-      border: 1px solid #ccc;
-      width: 100%;
-      max-width: 700px; /* Mostra menor na tela, mas baixa em 1400x1050 */
-      background: #fff;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-    input[type="file"], button {
-      margin: 10px;
-      padding: 10px 15px;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-      font-size: 16px;
-    }
-    button {
-      background-color: #003399; /* Azul Senai */
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-      border: none;
-    }
-    button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
+    body { font-family: sans-serif; text-align: center; background: #f4f4f4; margin: 0; padding: 20px; }
+    .controls { background: #fff; padding: 20px; margin: 0 auto 20px auto; border-radius: 8px; max-width: 600px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    canvas { border: 1px solid #ccc; width: 100%; max-width: 700px; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    input, button { margin: 8px; padding: 10px; border-radius: 4px; border: 1px solid #ddd; }
+    button { background-color: #003399; color: white; cursor: pointer; font-weight: bold; border: none; }
+    button:disabled { background-color: #ccc; }
+    .slider-group { margin: 15px 0; display: none; background: #f9f9f9; padding: 15px; border-radius: 8px; }
+    .slider-item { margin-bottom: 15px; }
+    label { font-size: 14px; font-weight: bold; color: #333; }
   </style>
 </head>
 <body>
 
-  <h1>Gerador de Cards (Padrão 1400x1050)</h1>
+  <h1>Gerador de Thumbnails (1400x1050)</h1>
 
   <div class="controls">
-    <label for="userImage">1. Faça o upload da foto do curso (JPG/PNG):</label><br>
-    <input type="file" id="userImage" accept="image/*" />
-    <br />
+    <label>1. Foto do curso:</label><br>
+    <input type="file" id="userImage" accept="image/*" /><br>
+    
+    <div id="sliderArea" class="slider-group">
+      <div class="slider-item">
+        <label for="xSlider">Ajuste Lateral (Esquerda/Direita):</label><br>
+        <input type="range" id="xSlider" min="0" max="100" value="50" style="width: 80%;">
+      </div>
+      <div class="slider-item">
+        <label for="ySlider">Ajuste Vertical (Cima/Baixo):</label><br>
+        <input type="range" id="ySlider" min="0" max="100" value="50" style="width: 80%;">
+      </div>
+    </div>
+
     <button id="downloadBtn" disabled>2. Baixar Imagem Final</button>
   </div>
 
@@ -63,70 +43,63 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const downloadBtn = document.getElementById('downloadBtn');
+    const xSlider = document.getElementById('xSlider');
+    const ySlider = document.getElementById('ySlider');
+    const sliderArea = document.getElementById('sliderArea');
 
     let fotoDoCurso = new Image();
     let artePadrao = new Image();
     let fotoDoCursoLoaded = false;
     let artePadraoLoaded = false;
 
-    // Não alterar nome do arquivo
     artePadrao.src = 'arte_padrao_branca.png'; 
-    
-    artePadrao.onload = () => {
-      artePadraoLoaded = true;
-      if (fotoDoCursoLoaded) tryRender();
-    };
-    
-    // Alerta no console caso a imagem padrão não seja encontrada
-    artePadrao.onerror = () => {
-      console.warn("Aviso: O arquivo 'arte_padrao_branca.png' não foi encontrado.");
-    };
+    artePadrao.onload = () => { artePadraoLoaded = true; if (fotoDoCursoLoaded) tryRender(); };
+
+    [xSlider, ySlider].forEach(s => s.addEventListener('input', tryRender));
 
     function tryRender() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!fotoDoCursoLoaded) return;
 
-      if (!fotoDoCursoLoaded) {
-        downloadBtn.disabled = true;
-        return;
-      }
-
-      // 1. Desenha a foto de fundo com corte automático (object-fit: cover)
       const scale = Math.max(canvas.width / fotoDoCurso.width, canvas.height / fotoDoCurso.height);
       const w = fotoDoCurso.width * scale;
       const h = fotoDoCurso.height * scale;
-      const x = (canvas.width - w) / 2;
-      const y = (canvas.height - h) / 2;
-      ctx.drawImage(fotoDoCurso, x, y, w, h);
+      
+      // Cálculo do deslocamento baseado nos sliders (0 a 100%)
+      const xOffset = (canvas.width - w) * (xSlider.value / 100);
+      const yOffset = (canvas.height - h) * (ySlider.value / 100);
+      
+      ctx.drawImage(fotoDoCurso, xOffset, yOffset, w, h);
 
-      // 2. Aplica a Arte Padrão (Malha e Logo)
       if (artePadraoLoaded) {
-        // Usa destination-out para vazar o fundo preto da sua arte
         ctx.globalCompositeOperation = 'destination-out';
         ctx.drawImage(artePadrao, 0, 0, canvas.width, canvas.height);
         ctx.globalCompositeOperation = 'source-over'; 
       }
-
       downloadBtn.disabled = false;
     }
 
     document.getElementById('userImage').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
-      reader.onload = function(evt) {
+      reader.onload = (evt) => {
         fotoDoCurso.src = evt.target.result;
         fotoDoCurso.onload = () => {
           fotoDoCursoLoaded = true;
+          sliderArea.style.display = 'block';
+          // Reseta para o centro (50) ao carregar nova foto
+          xSlider.value = 50;
+          ySlider.value = 50;
           tryRender();
         };
       };
       reader.readAsDataURL(file);
     });
 
-    downloadBtn.addEventListener('click', function() {
+    downloadBtn.addEventListener('click', () => {
       const link = document.createElement('a');
-      link.download = 'thumbnail_curso_senai.png';
+      link.download = 'thumbnail_senai_final.png';
       link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
     });
